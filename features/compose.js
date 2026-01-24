@@ -98,6 +98,50 @@ async function askSelectField(field, colors) {
 }
 
 /**
+ * Stelt een vraag voor netwerk configuratie (top-level networks)
+ */
+async function askNetworksField(field, colors) {
+    const { commentGray, accentOrange, textWhite } = colors;
+    
+    console.log(commentGray(`\n${field.description}`));
+    
+    // Default keys tonen als ze bestaan (verwacht een object voor networks)
+    const defaultKeys = field.default ? Object.keys(field.default).join(', ') : '';
+    console.log(textWhite(`Huidige netwerken: ${defaultKeys || 'geen'}`));
+    
+    const answer = await askQuestion(accentOrange(`${field.label} (druk Enter voor standaard, of geef namen gescheiden door komma's): `));
+    
+    if (!answer) {
+        return field.default;
+    }
+    
+    const names = answer.split(',').map(item => item.trim()).filter(item => item.length > 0);
+    const networksConfig = {};
+    
+    for (const name of names) {
+        // Vraag details voor elk netwerk
+        const isExternal = await askConfirmation(accentOrange(`  Is netwerk '${name}' extern? (y/N): `));
+        
+        if (isExternal) {
+            networksConfig[name] = { external: true };
+            continue;
+        }
+        
+        const isInternal = await askConfirmation(accentOrange(`  Is netwerk '${name}' intern? (y/N): `));
+        
+        if (isInternal) {
+            networksConfig[name] = { internal: true };
+            continue;
+        }
+        
+        // Standaard (leeg object = default driver, geen expliciete 'bridge')
+        networksConfig[name] = {};
+    }
+    
+    return networksConfig;
+}
+
+/**
  * Stelt een vraag voor een text veld
  */
 async function askTextField(field, colors) {
@@ -159,8 +203,11 @@ async function customizeCompose(composeContent, customizeConfig, colors) {
                 break;
             case 'ports':
             case 'volumes':
-            case 'networks':
+            case 'list':
                 value = await askArrayField(field, colors);
+                break;
+            case 'networks':
+                value = await askNetworksField(field, colors);
                 break;
             default:
                 console.log(commentGray(`⚠️  Onbekend veld type: ${field.type}, overslaan...`));
