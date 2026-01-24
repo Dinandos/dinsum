@@ -31,13 +31,16 @@ async function run() {
             execSync('ping -c 1 google.com', { stdio: 'ignore' });
             console.log(blue("🔄 Update ophalen van GitHub..."));
             
-            // We sturen de output naar 'ignore' zodat je geen "HEAD is now at..." ziet
+            // 1. Haal de code op (stil)
             execSync('git fetch origin && git reset --hard origin/main', { 
                 cwd: INSTALL_DIR, 
                 stdio: 'ignore' 
             });
+
+            // 2. HERSTEL PERMISSIONS: Maak index.js weer uitvoerbaar
+            execSync(`chmod +x ${path.join(INSTALL_DIR, 'index.js')}`, { stdio: 'ignore' });
             
-            console.log(white("✅ Update succesvol!"));
+            console.log(white("✅ Update succesvol en rechten hersteld!"));
         } catch (err) {
             console.error(red("❌ Update mislukt: Geen internet of Git fout."));
         }
