@@ -234,15 +234,14 @@ async function askNetworksField(field, colors, isTopLevel = true) {
     for (const name of names) {
         // 3. Vraag type (extern of intern)
         console.log(textWhite(`Type voor netwerk '${name}':`));
-        console.log(commentGray("  1. Standaard (bridge)"));
-        console.log(commentGray("  2. Extern"));
-        console.log(commentGray("  3. Intern"));
+        console.log(commentGray("  1. Extern"));
+        console.log(commentGray("  2. Intern"));
         
-        const typeAnswer = await askQuestion(accentOrange(`Kies optie [1]/2/3: `));
+        const typeAnswer = await askQuestion(accentOrange(`Kies optie [1]/2: `));
         
-        if (typeAnswer === '2' || typeAnswer.toLowerCase().includes('ext')) {
+        if (typeAnswer === '1' || typeAnswer.toLowerCase().includes('ext')) {
             networksConfig[name] = { external: true };
-        } else if (typeAnswer === '3' || typeAnswer.toLowerCase().includes('int')) {
+        } else if (typeAnswer === '2' || typeAnswer.toLowerCase().includes('int')) {
             networksConfig[name] = { internal: true };
         } else {
             // Standaard (leeg object = default driver)

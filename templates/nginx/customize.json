@@ -26,16 +26,14 @@
       "key": "services.nginx.networks",
       "label": "Service Netwerken",
       "description": "Welke netwerken moet de nginx container gebruiken?",
-      "default": ["proxy"]
+      "default": ""
     },
     {
       "type": "networks",
-      "key": "networks",
+      "key": "services.nginx.networks",
       "label": "Netwerk Definities",
       "description": "Definieer de eigenschappen van de netwerken (extern/intern)",
-      "default": {
-        "proxy": { "external": true }
-      }
+      "default": ""
     }
   ]
 }
