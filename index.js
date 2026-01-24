@@ -8,6 +8,7 @@ import chalk from 'chalk';
 // Functies importeren uit losse bestanden in ./features
 import { updateTool } from './features/update.js';
 import { uninstallTool } from './features/uninstall.js';
+import { composeTool } from './features/compose.js';
 
 // Fix voor __dirname in moderne ESM mode
 const __filename = fileURLToPath(import.meta.url);
@@ -16,6 +17,7 @@ const __dirname = path.dirname(__filename);
 const INSTALL_DIR = __dirname;
 const TEMPLATE_DIR = path.join(INSTALL_DIR, 'templates');
 const command = process.argv[2];
+const templateName = process.argv[3]; // Voor compose command
 const targetDir = process.cwd();
 
 // Kleuren instellen volgens COLOR_SCHEME.md
@@ -44,8 +46,23 @@ async function run() {
         return;
     }
 
+    if (command === 'compose') {
+        if (!templateName) {
+            console.log(boldRed("❌ Fout: Geen template naam opgegeven."));
+            console.log(white("Gebruik: ") + orange("dinsum compose <template>"));
+            if (fs.existsSync(TEMPLATE_DIR)) {
+                console.log(gray("\nBeschikbare templates:"));
+                const folders = fs.readdirSync(TEMPLATE_DIR);
+                folders.forEach(f => console.log(gray("  - ") + white(f)));
+            }
+            return;
+        }
+        await composeTool({ INSTALL_DIR, TEMPLATE_DIR, templateName, blue, boldBlue, gray, green, boldGreen, red, boldRed, orange, boldOrange, white });
+        return;
+    }
+
     if (!command) {
-        console.log(white("Gebruik: ") + blue("dinsum <template>") + gray(" | ") + orange("update") + gray(" | ") + orange("uninstall"));
+        console.log(white("Gebruik: ") + blue("dinsum <template>") + gray(" | ") + orange("update") + gray(" | ") + orange("uninstall") + gray(" | ") + orange("compose <template>"));
         if (fs.existsSync(TEMPLATE_DIR)) {
             const folders = fs.readdirSync(TEMPLATE_DIR);
             folders.forEach(f => console.log(gray(" - ") + white(f)));
