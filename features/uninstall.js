@@ -4,10 +4,24 @@ import fs from 'fs-extra';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import readline from 'readline';
+import chalk from 'chalk';
 
 const execAsync = promisify(exec);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+// Kleuren instellen volgens COLOR_SCHEME.md (fallback als niet doorgegeven)
+// Groen = Succes, Rood = Fail, Grijs = Comment, Blauw = Status, Oranje = AccentColor
+const defaultGreen = chalk.green;
+const defaultBoldGreen = chalk.bold.green;
+const defaultRed = chalk.red;
+const defaultBoldRed = chalk.bold.red;
+const defaultGray = chalk.gray;
+const defaultBlue = chalk.blue;
+const defaultBoldBlue = chalk.bold.blue;
+const defaultOrange = chalk.hex('#FFA500');
+const defaultBoldOrange = chalk.bold.hex('#FFA500');
+const defaultWhite = chalk.white;
 
 /**
  * Vraagt om bevestiging van de gebruiker
@@ -67,48 +81,57 @@ async function removeInstallDirectory(installDir) {
 
 /**
  * Hoofdfunctie voor het verwijderen van dinsum
+ * Gebruikt kleuren volgens COLOR_SCHEME.md
  */
-export async function uninstallTool({ INSTALL_DIR, orange, red, white }) {
-    console.log(orange("\n--- DINSUM UNINSTALL ---\n"));
+export async function uninstallTool({ INSTALL_DIR, blue, boldBlue, gray, green, boldGreen, red, boldRed, orange, boldOrange, white }) {
+    // Gebruik doorgegeven kleuren of fallback naar defaults
+    const accentOrange = boldOrange || defaultBoldOrange;
+    const textWhite = white || defaultWhite;
+    const commentGray = gray || defaultGray;
+    const successGreen = boldGreen || defaultBoldGreen;
+    const failRed = boldRed || defaultBoldRed;
+    const warningOrange = orange || defaultOrange;
+    
+    console.log(accentOrange("\n--- DINSUM UNINSTALL ---\n"));
     
     try {
         // Toon informatie over wat er verwijderd gaat worden
-        console.log(white("Dit zal dinsum volledig verwijderen:"));
-        console.log(white(`  - Installatie directory: ${INSTALL_DIR}`));
-        console.log(white("  - npm link verwijderen\n"));
+        console.log(textWhite("Dit zal dinsum volledig verwijderen:"));
+        console.log(commentGray(`  - Installatie directory: ${INSTALL_DIR}`));
+        console.log(commentGray("  - npm link verwijderen\n"));
 
         // Vraag om bevestiging
-        const confirmed = await askConfirmation(orange("Weet je zeker dat je dinsum wilt verwijderen? (y/N): "));
+        const confirmed = await askConfirmation(accentOrange("Weet je zeker dat je dinsum wilt verwijderen? (y/N): "));
         
         if (!confirmed) {
-            console.log(white("\n❌ Uninstall geannuleerd.\n"));
+            console.log(failRed("\n❌ Uninstall geannuleerd.\n"));
             return;
         }
 
-        console.log(white("\n"));
+        console.log(textWhite("\n"));
 
         // Stap 1: Verwijder npm link
-        console.log(white("1. Verwijderen van npm link..."));
+        console.log(commentGray("1. Verwijderen van npm link..."));
         await removeNpmLink();
-        console.log(white("✅ npm link verwijderd.\n"));
+        console.log(successGreen("✅ npm link verwijderd.\n"));
 
         // Stap 2: Verwijder installatie directory
-        console.log(white(`2. Verwijderen van installatie directory (${INSTALL_DIR})...`));
+        console.log(commentGray(`2. Verwijderen van installatie directory (${INSTALL_DIR})...`));
         const removed = await removeInstallDirectory(INSTALL_DIR);
         
         if (removed) {
-            console.log(white("✅ Installatie directory verwijderd.\n"));
+            console.log(successGreen("✅ Installatie directory verwijderd.\n"));
         } else {
-            console.log(white("⚠️  Installatie directory bestaat niet of is al verwijderd.\n"));
+            console.log(warningOrange("⚠️  Installatie directory bestaat niet of is al verwijderd.\n"));
         }
 
-        console.log(orange("✅ dinsum is volledig verwijderd!\n"));
-        console.log(white("Bedankt voor het gebruik van dinsum. Tot ziens! 👋\n"));
+        console.log(successGreen("✅ dinsum is volledig verwijderd!\n"));
+        console.log(commentGray("Bedankt voor het gebruik van dinsum. Tot ziens! 👋\n"));
 
     } catch (error) {
-        console.log(red(`\n❌ Fout tijdens uninstall: ${error.message}\n`));
-        console.log(white("Mogelijk moet je handmatig de volgende directory verwijderen:"));
-        console.log(white(`  ${INSTALL_DIR}\n`));
+        console.log(failRed(`\n❌ Fout tijdens uninstall: ${error.message}\n`));
+        console.log(commentGray("Mogelijk moet je handmatig de volgende directory verwijderen:"));
+        console.log(commentGray(`  ${INSTALL_DIR}\n`));
         process.exit(1);
     }
 }

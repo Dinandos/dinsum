@@ -1,6 +1,7 @@
 #!/bin/bash
 
-# Kleuren definiëren volgens het kleurenschema
+# Kleuren definiëren volgens COLOR_SCHEME.md
+# Groen = Succes, Rood = Fail, Grijs = Comment, Blauw = Status, Oranje = AccentColor
 GREEN='\033[0;32m'      # Succes
 BOLD_GREEN='\033[1;32m' # Succes (bold)
 RED='\033[0;31m'        # Fail

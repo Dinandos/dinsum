@@ -3,10 +3,23 @@ import { promisify } from 'util';
 import fs from 'fs-extra';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import chalk from 'chalk';
 
 const execAsync = promisify(exec);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+// Kleuren instellen volgens COLOR_SCHEME.md (fallback als niet doorgegeven)
+// Groen = Succes, Rood = Fail, Grijs = Comment, Blauw = Status, Oranje = AccentColor
+const defaultGreen = chalk.green;
+const defaultBoldGreen = chalk.bold.green;
+const defaultRed = chalk.red;
+const defaultBoldRed = chalk.bold.red;
+const defaultGray = chalk.gray;
+const defaultBlue = chalk.blue;
+const defaultBoldBlue = chalk.bold.blue;
+const defaultOrange = chalk.hex('#FFA500');
+const defaultBoldOrange = chalk.bold.hex('#FFA500');
 
 /**
  * Controleert of er een internetverbinding is
@@ -68,35 +81,42 @@ async function setExecutePermissions() {
 
 /**
  * Hoofdfunctie voor het updaten van dinsum
+ * Gebruikt kleuren volgens COLOR_SCHEME.md
  */
-export async function updateTool({ INSTALL_DIR, blue, gray, green, red }) {
-    console.log(blue("\n--- DINSUM UPDATE ---\n"));
+export async function updateTool({ INSTALL_DIR, blue, boldBlue, gray, green, boldGreen, red, boldRed, orange, boldOrange }) {
+    // Gebruik doorgegeven kleuren of fallback naar defaults
+    const statusBlue = boldBlue || defaultBoldBlue;
+    const commentGray = gray || defaultGray;
+    const successGreen = boldGreen || defaultBoldGreen;
+    const failRed = boldRed || defaultBoldRed;
+    
+    console.log(statusBlue("\n--- DINSUM UPDATE ---\n"));
     
     try {
         // Stap 1: Controleer internetverbinding
-        console.log(gray("1. Controleren van internetverbinding..."));
+        console.log(commentGray("1. Controleren van internetverbinding..."));
         
-        console.log(green("✅ Internetverbinding gevonden.\n"));
+        console.log(successGreen("✅ Internetverbinding gevonden.\n"));
         
         // Stap 2: Git fetch
-        console.log(gray("2. Ophalen van laatste wijzigingen (git fetch origin/main)..."));
+        console.log(commentGray("2. Ophalen van laatste wijzigingen (git fetch origin/main)..."));
         await gitFetch();
-        console.log(green("✅ Git fetch voltooid.\n"));
+        console.log(successGreen("✅ Git fetch voltooid.\n"));
         
         // Stap 3: Git hard pull
-        console.log(gray("3. Toepassen van updates (git reset --hard origin/main)..."));
+        console.log(commentGray("3. Toepassen van updates (git reset --hard origin/main)..."));
         await gitHardPull();
-        console.log(green("✅ Git hard pull voltooid.\n"));
+        console.log(successGreen("✅ Git hard pull voltooid.\n"));
         
         // Stap 4: Execute permissions instellen
-        console.log(gray("4. Instellen van execute permissions voor index.js..."));
+        console.log(commentGray("4. Instellen van execute permissions voor index.js..."));
         await setExecutePermissions();
-        console.log(green("✅ Execute permissions ingesteld.\n"));
+        console.log(successGreen("✅ Execute permissions ingesteld.\n"));
         
-        console.log(green("✅ Update voltooid! dinsum is bijgewerkt naar de laatste versie.\n"));
+        console.log(successGreen("✅ Update voltooid! dinsum is bijgewerkt naar de laatste versie.\n"));
         
     } catch (error) {
-        console.log(red(`\n❌ Fout tijdens update: ${error.message}\n`));
+        console.log(failRed(`\n❌ Fout tijdens update: ${error.message}\n`));
         process.exit(1);
     }
 }
