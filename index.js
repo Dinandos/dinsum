@@ -21,6 +21,7 @@ const orange = chalk.hex('#FFA500'); // Mooi oranje
 const red = chalk.bold.red;
 const gray = chalk.gray;
 const white = chalk.white;
+const green = chalk.green;
 
 async function run() {
     console.log(blue("\n--- DINSUM CLI TOOL ---"));
@@ -40,7 +41,7 @@ async function run() {
             // 2. HERSTEL PERMISSIONS: Maak index.js weer uitvoerbaar
             execSync(`chmod +x ${path.join(INSTALL_DIR, 'index.js')}`, { stdio: 'ignore' });
             
-            console.log(white("✅ Update succesvol en rechten hersteld!"));
+            console.log(green("✅ Update succesvol en rechten hersteld!"));
         } catch (err) {
             console.error(red("❌ Update mislukt: Geen internet of Git fout."));
         }
