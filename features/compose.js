@@ -2,6 +2,7 @@ import fs from 'fs-extra';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import chalk from 'chalk';
+import { runComposeWizard } from './compose_wizard.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -59,15 +60,22 @@ export async function composeTool({ INSTALL_DIR, TEMPLATE_DIR, templateName, blu
         
         let composeContent = await fs.readFile(composeFile, 'utf-8');
         
-        // Vraag of gebruiker wil customizen
         console.log(textWhite(`Template "${templateName}" gevonden.`));
         
-        // Schrijf compose.yml naar de huidige directory
-        const targetDir = process.cwd();
-        const outputFile = path.join(targetDir, 'compose.yml');
-        await fs.writeFile(outputFile, composeContent, 'utf-8');
+        // Start de wizard voor customization
+        const result = await runComposeWizard(composeContent, colors);
         
-        console.log(successGreen(`\n✅ compose.yml is aangemaakt in de huidige directory!`));
+        const targetDir = process.cwd();
+        
+        // Schrijf compose.yml
+        const outputFile = path.join(targetDir, 'compose.yml');
+        await fs.writeFile(outputFile, result.yaml, 'utf-8');
+
+        // Schrijf .env
+        const envFile = path.join(targetDir, '.env');
+        await fs.writeFile(envFile, result.env, 'utf-8');
+        
+        console.log(successGreen(`\n✅ compose.yml en .env zijn aangemaakt!`));
         console.log(commentGray(`   Gebruik: ${accentOrange("docker compose up -d")} om te starten.\n`));
         
     } catch (error) {
