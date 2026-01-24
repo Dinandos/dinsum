@@ -2,6 +2,7 @@ services:
   ubuntu-testingdemo2:
     image: ubuntu:latest
     container_name: ubuntu-testingdemo2
+    restart: unless-stopped
     volumes:
       - /ubuntutest:/
     tty: true
