@@ -30,8 +30,13 @@ async function run() {
         try {
             execSync('ping -c 1 google.com', { stdio: 'ignore' });
             console.log(blue("🔄 Update ophalen van GitHub..."));
-            // We gebruiken je opgeslagen repo: https://github.com/Dinandos/dinsum.git
-            execSync('git fetch origin && git reset --hard origin/main', { cwd: INSTALL_DIR, stdio: 'inherit' });
+            
+            // We sturen de output naar 'ignore' zodat je geen "HEAD is now at..." ziet
+            execSync('git fetch origin && git reset --hard origin/main', { 
+                cwd: INSTALL_DIR, 
+                stdio: 'ignore' 
+            });
+            
             console.log(white("✅ Update succesvol!"));
         } catch (err) {
             console.error(red("❌ Update mislukt: Geen internet of Git fout."));
