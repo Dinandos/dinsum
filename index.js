@@ -3,8 +3,11 @@
 import fs from 'fs-extra';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { execSync } from 'child_process';
 import chalk from 'chalk';
+
+// Functies importeren uit losse bestanden in ./features
+import { updateTool } from './features/update.js';
+import { uninstallTool } from './features/uninstall.js';
 
 // Fix voor __dirname in moderne ESM mode
 const __filename = fileURLToPath(import.meta.url);
@@ -27,43 +30,17 @@ async function run() {
     console.log(blue("\n--- DINSUM CLI TOOL ---"));
 
     if (command === 'update') {
-        console.log(gray("🔍 Controleren op internetverbinding..."));
-        try {
-            execSync('ping -c 1 google.com', { stdio: 'ignore' });
-            console.log(blue("🔄 Update ophalen van GitHub..."));
-            
-            // 1. Haal de code op (stil)
-            execSync('git fetch origin && git reset --hard origin/main', { 
-                cwd: INSTALL_DIR, 
-                stdio: 'ignore' 
-            });
-
-            // 2. HERSTEL PERMISSIONS: Maak index.js weer uitvoerbaar
-            execSync(`chmod +x ${path.join(INSTALL_DIR, 'index.js')}`, { stdio: 'ignore' });
-            
-            console.log(green("✅ Update succesvol en rechten hersteld!"));
-        } catch (err) {
-            console.error(red("❌ Update mislukt: Geen internet of Git fout."));
-        }
+        await updateTool({ INSTALL_DIR, blue, gray, green, red });
         return;
     }
 
     if (command === 'uninstall') {
-        console.log(orange("⚠️  WAARSCHUWING: Dit verwijdert de tool en alle templates."));
-        setTimeout(() => {
-            try {
-                execSync(`sudo npm uninstall -g dinsum`, { stdio: 'inherit' });
-                execSync(`rm -rf ${INSTALL_DIR}`, { stdio: 'inherit' });
-                console.log(white("✅ 'dinsum' is verwijderd."));
-            } catch (err) {
-                console.error(red("❌ Fout bij verwijderen."));
-            }
-        }, 3000);
+        await uninstallTool({ INSTALL_DIR, orange, red, white });
         return;
     }
 
     if (!command) {
-        console.log(white("Gebruik: ") + blue("dinsum <template>") + gray(" | ") + orange("update"));
+        console.log(white("Gebruik: ") + blue("dinsum <template>") + gray(" | ") + orange("update") + gray(" | ") + red("uninstall"));
         if (fs.existsSync(TEMPLATE_DIR)) {
             const folders = fs.readdirSync(TEMPLATE_DIR);
             folders.forEach(f => console.log(gray(" - ") + white(f)));
