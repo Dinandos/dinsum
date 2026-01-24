@@ -98,16 +98,23 @@ async function askSelectField(field, colors) {
 }
 
 /**
- * Stelt een vraag voor netwerk configuratie (top-level networks)
+ * Stelt een vraag voor netwerk configuratie (top-level of service-level)
  */
-async function askNetworksField(field, colors) {
+async function askNetworksField(field, colors, isTopLevel = true) {
     const { commentGray, accentOrange, textWhite } = colors;
     
     console.log(commentGray(`\n${field.description}`));
     
-    // Default keys tonen als ze bestaan (verwacht een object voor networks)
-    const defaultKeys = field.default ? Object.keys(field.default).join(', ') : '';
-    console.log(textWhite(`Huidige netwerken: ${defaultKeys || 'geen'}`));
+    // Default weergave afhandelen (array voor services, object voor top-level)
+    let defaultDisplay = '';
+    if (field.default) {
+        if (Array.isArray(field.default)) {
+            defaultDisplay = field.default.join(', ');
+        } else if (typeof field.default === 'object') {
+            defaultDisplay = Object.keys(field.default).join(', ');
+        }
+    }
+    console.log(textWhite(`Huidige netwerken: ${defaultDisplay || 'geen'}`));
     
     const answer = await askQuestion(accentOrange(`${field.label} (druk Enter voor standaard, of geef namen gescheiden door komma's): `));
     
@@ -116,6 +123,12 @@ async function askNetworksField(field, colors) {
     }
     
     const names = answer.split(',').map(item => item.trim()).filter(item => item.length > 0);
+    
+    // Als het niet de top-level configuratie is, retourneren we gewoon de lijst met namen
+    if (!isTopLevel) {
+        return names;
+    }
+
     const networksConfig = {};
     
     for (const name of names) {
@@ -207,7 +220,7 @@ async function customizeCompose(composeContent, customizeConfig, colors) {
                 value = await askArrayField(field, colors);
                 break;
             case 'networks':
-                value = await askNetworksField(field, colors);
+                value = await askNetworksField(field, colors, field.key === 'networks');
                 break;
             default:
                 console.log(commentGray(`⚠️  Onbekend veld type: ${field.type}, overslaan...`));
