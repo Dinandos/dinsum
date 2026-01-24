@@ -21,7 +21,7 @@ const orange = chalk.hex('#FFA500'); // Mooi oranje
 const red = chalk.bold.red;
 const gray = chalk.gray;
 const white = chalk.white;
-const green = chalk.green;
+const green = chalk.bold.green;
 
 async function run() {
     console.log(blue("\n--- DINSUM CLI TOOL ---"));
