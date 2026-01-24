@@ -204,33 +204,19 @@ async function askNetworksField(field, colors, isTopLevel = true) {
     
     console.log(commentGray(`\n${field.description}`));
     
-    // Default weergave afhandelen (array voor services, object voor top-level)
-    let defaultNames = [];
-    if (field.default) {
-        if (Array.isArray(field.default)) {
-            defaultNames = field.default;
-        } else if (typeof field.default === 'object') {
-            defaultNames = Object.keys(field.default);
-        }
-    }
-    const defaultDisplay = defaultNames.join(', ');
-    console.log(textWhite(`Huidige netwerken: ${defaultDisplay || 'geen'}`));
-    
-    // 1. Vraag of de gebruiker netwerken wil gebruiken
-    const wantNetworksAnswer = await askQuestion(accentOrange(`Wil je netwerken toevoegen/gebruiken? (Y/n): `));
-    const wantNetworks = wantNetworksAnswer.trim().toLowerCase() !== 'n';
+    // 1. Vraag of de gebruiker netwerken wil gebruiken (Default: Nee)
+    const wantNetworksAnswer = await askQuestion(accentOrange(`Wil je een netwerk toevoegen? (y/N): `));
+    const wantNetworks = wantNetworksAnswer.trim().toLowerCase() === 'y' || wantNetworksAnswer.trim().toLowerCase() === 'yes';
     
     if (!wantNetworks) {
         return undefined;
     }
     
     // 2. Vraag om namen
-    const answer = await askQuestion(accentOrange(`${field.label} (druk Enter voor '${defaultDisplay}', of geef namen gescheiden door komma's): `));
+    const answer = await askQuestion(accentOrange(`Welk netwerk wil je toevoegen? (namen gescheiden door komma's): `));
     
     let names = [];
-    if (!answer) {
-        names = defaultNames;
-    } else {
+    if (answer) {
         names = answer.split(',').map(item => item.trim()).filter(item => item.length > 0);
     }
     
@@ -246,23 +232,22 @@ async function askNetworksField(field, colors, isTopLevel = true) {
     const networksConfig = {};
     
     for (const name of names) {
-        // Vraag details voor elk netwerk
-        const isExternal = await askConfirmation(accentOrange(`  Is netwerk '${name}' extern? (y/N): `));
+        // 3. Vraag type (extern of intern)
+        console.log(textWhite(`Type voor netwerk '${name}':`));
+        console.log(commentGray("  1. Standaard (bridge)"));
+        console.log(commentGray("  2. Extern"));
+        console.log(commentGray("  3. Intern"));
         
-        if (isExternal) {
+        const typeAnswer = await askQuestion(accentOrange(`Kies optie [1]/2/3: `));
+        
+        if (typeAnswer === '2' || typeAnswer.toLowerCase().includes('ext')) {
             networksConfig[name] = { external: true };
-            continue;
-        }
-        
-        const isInternal = await askConfirmation(accentOrange(`  Is netwerk '${name}' intern? (y/N): `));
-        
-        if (isInternal) {
+        } else if (typeAnswer === '3' || typeAnswer.toLowerCase().includes('int')) {
             networksConfig[name] = { internal: true };
-            continue;
+        } else {
+            // Standaard (leeg object = default driver)
+            networksConfig[name] = {};
         }
-        
-        // Standaard (leeg object = default driver, geen expliciete 'bridge')
-        networksConfig[name] = {};
     }
     
     // Als config leeg is, return undefined zodat de key verwijderd wordt uit YAML
