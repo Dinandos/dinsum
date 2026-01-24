@@ -1,79 +1,73 @@
 #!/usr/bin/env node
 
-const fs = require('fs-extra');
-const path = require('path');
-const { execSync } = require('child_process');
-const chalk = require('chalk');
+import fs from 'fs-extra';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { execSync } from 'child_process';
+import chalk from 'chalk';
+
+// Fix voor __dirname in moderne ESM mode
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const INSTALL_DIR = __dirname;
 const TEMPLATE_DIR = path.join(INSTALL_DIR, 'templates');
 const command = process.argv[2];
 const targetDir = process.cwd();
 
-// Gebruik functies in plaats van variabelen om fouten te voorkomen
-const blue = (text) => chalk.blue ? chalk.bold.blue(text) : text;
-const orange = (text) => chalk.yellow ? chalk.yellow(text) : text;
-const red = (text) => chalk.red ? chalk.bold.red(text) : text;
-const gray = (text) => chalk.gray ? chalk.gray(text) : text;
-const white = (text) => text;
+// Kleuren instellen met Chalk v5 syntax
+const blue = chalk.bold.blue;
+const orange = chalk.hex('#FFA500'); // Mooi oranje
+const red = chalk.bold.red;
+const gray = chalk.gray;
+const white = chalk.white;
 
 async function run() {
     console.log(blue("\n--- DINSUM CLI TOOL ---"));
 
-    // --- FEATURE: UPDATE ---
     if (command === 'update') {
         console.log(gray("🔍 Controleren op internetverbinding..."));
         try {
             execSync('ping -c 1 google.com', { stdio: 'ignore' });
             console.log(blue("🔄 Update ophalen van GitHub..."));
+            // We gebruiken je opgeslagen repo: https://github.com/Dinandos/dinsum.git
             execSync('git fetch origin && git reset --hard origin/main', { cwd: INSTALL_DIR, stdio: 'inherit' });
-            console.log(white("✅ Update ") + blue("succesvol") + white(" uitgevoerd!"));
+            console.log(white("✅ Update succesvol!"));
         } catch (err) {
-            console.error(red("❌ Update mislukt: Geen internet of Git-fout."));
+            console.error(red("❌ Update mislukt: Geen internet of Git fout."));
         }
         return;
     }
 
-    // --- FEATURE: UNINSTALL ---
     if (command === 'uninstall') {
         console.log(orange("⚠️  WAARSCHUWING: Dit verwijdert de tool en alle templates."));
-        console.log(gray("Druk op Ctrl+C om te annuleren, of wacht 3 seconden..."));
-        
         setTimeout(() => {
             try {
-                console.log(red("🗑️  Bezig met verwijderen..."));
                 execSync(`sudo npm uninstall -g dinsum`, { stdio: 'inherit' });
                 execSync(`rm -rf ${INSTALL_DIR}`, { stdio: 'inherit' });
-                console.log(white("✅ 'dinsum' is ") + red("verwijderd") + white("."));
+                console.log(white("✅ 'dinsum' is verwijderd."));
             } catch (err) {
-                console.error(red("❌ Fout bij verwijderen. Doe handmatig: sudo npm uninstall -g dinsum"));
+                console.error(red("❌ Fout bij verwijderen."));
             }
         }, 3000);
         return;
     }
 
-    // --- HELP MENU / NO COMMAND ---
     if (!command) {
-        console.log(white("Gebruik: ") + blue("dinsum <template>") + gray(" | ") + orange("update") + gray(" | ") + red("uninstall"));
-        
+        console.log(white("Gebruik: ") + blue("dinsum <template>") + gray(" | ") + orange("update"));
         if (fs.existsSync(TEMPLATE_DIR)) {
             const folders = fs.readdirSync(TEMPLATE_DIR);
-            console.log(white("\nBeschikbare templates:"));
             folders.forEach(f => console.log(gray(" - ") + white(f)));
         }
-        console.log(blue("-----------------------\n"));
         return;
     }
 
-    // --- TEMPLATE KOPIËREN ---
     const source = path.join(TEMPLATE_DIR, command);
     if (fs.existsSync(source)) {
-        console.log(gray(`📦 Kopiëren van ${command}...`));
         await fs.copy(source, targetDir);
-        console.log(white("✅ Template ") + blue(command) + white(" staat klaar in de huidige map!"));
+        console.log(white("✅ Template ") + blue(command) + white(" staat klaar!"));
     } else {
         console.log(red(`⚠️  Fout: Template "${command}" niet gevonden.`));
-        console.log(gray("Typ 'dinsum' zonder argumenten om de lijst te zien."));
     }
 }
 
