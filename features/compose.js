@@ -76,6 +76,104 @@ async function askArrayField(field, colors) {
 }
 
 /**
+ * Stelt een vraag voor poorten (specifiek host poort aanpassen)
+ */
+async function askPortsField(field, colors) {
+    const { commentGray, accentOrange, textWhite } = colors;
+    
+    console.log(commentGray(`\n${field.description}`));
+    
+    // Vraag om modus (Expose vs Ports)
+    console.log(textWhite("Kies poort configuratie:"));
+    console.log(commentGray("  - expose: [Default] Alleen intern bereikbaar (voor proxy)"));
+    console.log(commentGray("  - ports:  Direct bereikbaar op host (public)"));
+    
+    const modeAnswer = await askQuestion(accentOrange("Kies optie [expose]/ports: "));
+    const isPortsMode = modeAnswer.toLowerCase().trim() === 'ports';
+    
+    // Fallback naar standaard array input als er geen defaults zijn om te parsen
+    if (!field.default || !Array.isArray(field.default) || field.default.length === 0) {
+        const values = await askArrayField(field, colors);
+        return {
+            mode: isPortsMode ? 'ports' : 'expose',
+            values: values
+        };
+    }
+
+    const newPorts = [];
+    console.log(textWhite(isPortsMode ? "Configureer poort mappings (druk Enter voor standaard):" : "Poorten voor expose (worden automatisch overgenomen):"));
+    
+    for (const portMapping of field.default) {
+        // We gaan ervan uit dat de template een mapping bevat (host:container)
+        const sepIndex = portMapping.lastIndexOf(':');
+        let containerPort = portMapping;
+        let hostPort = '';
+        
+        if (sepIndex !== -1) {
+            containerPort = portMapping.substring(sepIndex + 1);
+            hostPort = portMapping.substring(0, sepIndex);
+        }
+        
+        if (isPortsMode) {
+            const answer = await askQuestion(accentOrange(`  Host poort voor '${containerPort}' [${hostPort || containerPort}]: `));
+            const finalHost = answer.trim() || hostPort || containerPort;
+            newPorts.push(`${finalHost}:${containerPort}`);
+        } else {
+            // Expose mode: alleen container poort
+            console.log(commentGray(`  - Container poort ${containerPort} wordt exposed.`));
+            newPorts.push(containerPort);
+        }
+    }
+    
+    return {
+        mode: isPortsMode ? 'ports' : 'expose',
+        values: newPorts.length > 0 ? newPorts : undefined
+    };
+}
+
+/**
+ * Stelt een vraag voor volumes (specifiek host paths aanpassen)
+ */
+async function askVolumesField(field, colors) {
+    const { commentGray, accentOrange, textWhite } = colors;
+    
+    console.log(commentGray(`\n${field.description}`));
+    
+    // Fallback naar standaard array input als er geen defaults zijn om te parsen
+    if (!field.default || !Array.isArray(field.default) || field.default.length === 0) {
+        return askArrayField(field, colors);
+    }
+
+    const newVolumes = [];
+    console.log(textWhite("Configureer volumes (druk Enter voor standaard):"));
+    
+    for (const vol of field.default) {
+        // Probeer host en container deel te scheiden
+        // We zoeken naar ':/' omdat container paths meestal absoluut zijn (beginnen met /)
+        let sepIndex = vol.indexOf(':/');
+        
+        // Fallback voor als er geen :/ is (bijv named volumes of relatieve container paden)
+        if (sepIndex === -1) sepIndex = vol.indexOf(':');
+        
+        if (sepIndex === -1) {
+            // Geen separator, behoud origineel
+            newVolumes.push(vol);
+            continue;
+        }
+        
+        const hostPart = vol.substring(0, sepIndex);
+        const containerPart = vol.substring(sepIndex + 1); // bevat ook :ro indien aanwezig
+        
+        const answer = await askQuestion(accentOrange(`  Host path voor '${containerPart}' [${hostPart}]: `));
+        
+        const finalHost = answer.trim() || hostPart;
+        newVolumes.push(`${finalHost}:${containerPart}`);
+    }
+    
+    return newVolumes;
+}
+
+/**
  * Stelt een vraag voor een select veld
  */
 async function askSelectField(field, colors) {
@@ -221,9 +319,34 @@ async function customizeCompose(composeContent, customizeConfig, colors) {
                 value = await askSelectField(field, colors);
                 break;
             case 'ports':
-            case 'volumes':
+                const portsResult = await askPortsField(field, colors);
+                
+                // Speciale afhandeling voor ports/expose switch
+                if (portsResult && typeof portsResult === 'object' && 'mode' in portsResult) {
+                    // Bepaal parent path (bijv. services.nginx)
+                    const lastDotIndex = field.key.lastIndexOf('.');
+                    if (lastDotIndex !== -1) {
+                        const parentPath = field.key.substring(0, lastDotIndex);
+                        
+                        if (portsResult.mode === 'expose') {
+                            // Zet expose, verwijder ports
+                            setNestedValue(composeData, `${parentPath}.expose`, portsResult.values);
+                            setNestedValue(composeData, field.key, undefined);
+                        } else {
+                            // Zet ports, verwijder expose
+                            setNestedValue(composeData, field.key, portsResult.values);
+                            setNestedValue(composeData, `${parentPath}.expose`, undefined);
+                        }
+                        continue; // Sla de standaard setNestedValue over
+                    }
+                }
+                value = portsResult;
+                break;
             case 'list':
                 value = await askArrayField(field, colors);
+                break;
+            case 'volumes':
+                value = await askVolumesField(field, colors);
                 break;
             case 'networks':
                 value = await askNetworksField(field, colors, field.key === 'networks');
