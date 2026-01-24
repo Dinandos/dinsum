@@ -1,0 +1,8 @@
+services:
+  ubuntu:
+    image: ubuntu:latest
+    container_name: ubuntu
+    volumes:
+      - /ubuntutest:/
+    tty: true
+    stdin_open: true

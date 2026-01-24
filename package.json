@@ -1,0 +1,26 @@
+{
+  "name": "dinsum",
+  "version": "1.0.0",
+  "description": "",
+  "homepage": "https://github.com/Dinandos/dinsum#readme",
+  "bugs": {
+    "url": "https://github.com/Dinandos/dinsum/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Dinandos/dinsum.git"
+  },
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "main": "index.js",
+  "bin": {
+    "dinsum": "./index.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "fs-extra": "^11.3.3"
+  }
+}
