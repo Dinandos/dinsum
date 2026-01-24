@@ -3,19 +3,19 @@
 const fs = require('fs-extra');
 const path = require('path');
 const { execSync } = require('child_process');
-const chalk = require('chalk'); // Voor de kleuren
+const chalk = require('chalk');
 
 const INSTALL_DIR = __dirname;
 const TEMPLATE_DIR = path.join(INSTALL_DIR, 'templates');
 const command = process.argv[2];
 const targetDir = process.cwd();
 
-// Kleurenconfiguratie
-const blue = chalk.bold.blue;
-const orange = chalk.keyword('orange'); // Of chalk.yellow
-const red = chalk.bold.red;
-const gray = chalk.gray;
-const white = chalk.white;
+// Gebruik functies in plaats van variabelen om fouten te voorkomen
+const blue = (text) => chalk.blue ? chalk.bold.blue(text) : text;
+const orange = (text) => chalk.yellow ? chalk.yellow(text) : text;
+const red = (text) => chalk.red ? chalk.bold.red(text) : text;
+const gray = (text) => chalk.gray ? chalk.gray(text) : text;
+const white = (text) => text;
 
 async function run() {
     console.log(blue("\n--- DINSUM CLI TOOL ---"));
