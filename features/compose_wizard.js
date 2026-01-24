@@ -1,13 +1,42 @@
-import * as yaml from 'js-yaml';
-import { createInterface, askQuestion, askConfirmation, closeInterface } from '../utils/io.js';
+import { createInterface, askQuestion, closeInterface } from '../utils/io.js';
 
-export async function runComposeWizard(composeContent, colors) {
+export async function runComposeWizard(envContent, colors) {
     const { accentOrange, textWhite, commentGray } = colors;
     const rl = createInterface();
     
-    // Parse de originele YAML
-    const composeData = yaml.load(composeContent);
-    const envVars = {}; // Hier verzamelen we de .env variabelen
+    console.log(textWhite("\nConfigureren van variabelen (.env):\n"));
+
+    const lines = envContent.split('\n');
+    const newLines = [];
+
+    for (let line of lines) {
+        const trimmed = line.trim();
+        
+        // Sla comments en lege regels over (behoud ze wel in output)
+        if (!trimmed || trimmed.startsWith('#')) {
+            newLines.push(line);
+            continue;
+        }
+
+        // Check voor KEY=VALUE
+        const eqIndex = line.indexOf('=');
+        if (eqIndex !== -1) {
+            const key = line.substring(0, eqIndex).trim();
+            const defaultValue = line.substring(eqIndex + 1).trim();
+            
+            const answer = await askQuestion(rl, accentOrange(`Wat wil je dat ${key} wordt? [${defaultValue}]: `));
+            const finalValue = answer !== '' ? answer : defaultValue;
+            
+            newLines.push(`${key}=${finalValue}`);
+        } else {
+            newLines.push(line);
+        }
+    }
+
+    closeInterface(rl);
+
+    return newLines.join('\n');
+}
     
     // We gaan ervan uit dat er één hoofdservice is (vaak de eerste of met dezelfde naam als template)
     // Voor nu pakken we de eerste service die we vinden om te configureren

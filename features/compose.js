@@ -62,20 +62,35 @@ export async function composeTool({ INSTALL_DIR, TEMPLATE_DIR, templateName, blu
         
         console.log(textWhite(`Template "${templateName}" gevonden.`));
         
-        // Start de wizard voor customization
-        const result = await runComposeWizard(composeContent, colors);
+        // Check voor .env template
+        const envTemplateFile = path.join(templatePath, '.env');
+        let envContent = null;
+        
+        if (await fs.pathExists(envTemplateFile)) {
+            envContent = await fs.readFile(envTemplateFile, 'utf-8');
+        }
+        
+        // Start de wizard als er een .env template is
+        let finalEnvContent = null;
+        if (envContent) {
+            finalEnvContent = await runComposeWizard(envContent, colors);
+        }
         
         const targetDir = process.cwd();
         
         // Schrijf compose.yml
         const outputFile = path.join(targetDir, 'compose.yml');
-        await fs.writeFile(outputFile, result.yaml, 'utf-8');
+        await fs.writeFile(outputFile, composeContent, 'utf-8');
 
         // Schrijf .env
-        const envFile = path.join(targetDir, '.env');
-        await fs.writeFile(envFile, result.env, 'utf-8');
+        if (finalEnvContent) {
+            const envFile = path.join(targetDir, '.env');
+            await fs.writeFile(envFile, finalEnvContent, 'utf-8');
+            console.log(successGreen(`\n✅ compose.yml en .env zijn aangemaakt!`));
+        } else {
+            console.log(successGreen(`\n✅ compose.yml is aangemaakt!`));
+        }
         
-        console.log(successGreen(`\n✅ compose.yml en .env zijn aangemaakt!`));
         console.log(commentGray(`   Gebruik: ${accentOrange("docker compose up -d")} om te starten.\n`));
         
     } catch (error) {
