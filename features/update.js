@@ -11,24 +11,7 @@ const __dirname = path.dirname(__filename);
 /**
  * Controleert of er een internetverbinding is
  */
-async function checkInternetConnection() {
-    try {
-        // Probeer een verbinding te maken met een betrouwbare service
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 seconden timeout
-        
-        const response = await fetch('1.1.1.1', {
-            method: 'HEAD',
-            signal: controller.signal,
-            mode: 'no-cors'
-        });
-        
-        clearTimeout(timeoutId);
-        return true;
-    } catch (error) {
-        return false;
-    }
-}
+
 
 /**
  * Voert git fetch origin/main uit
@@ -92,12 +75,7 @@ export async function updateTool({ INSTALL_DIR, blue, gray, green, red }) {
     try {
         // Stap 1: Controleer internetverbinding
         console.log(gray("1. Controleren van internetverbinding..."));
-        const hasInternet = await checkInternetConnection();
         
-        if (!hasInternet) {
-            console.log(red("❌ Geen internetverbinding gevonden. Update kan niet worden uitgevoerd."));
-            process.exit(1);
-        }
         console.log(green("✅ Internetverbinding gevonden.\n"));
         
         // Stap 2: Git fetch
