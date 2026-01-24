@@ -3,7 +3,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import readline from 'readline';
 import chalk from 'chalk';
-import yaml from 'js-yaml';
+import * as yaml from 'js-yaml';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
