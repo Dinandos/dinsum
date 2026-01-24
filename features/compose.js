@@ -86,7 +86,7 @@ async function askSelectField(field, colors) {
     const answer = await askQuestion(accentOrange(`${field.label} (druk Enter voor geen, of kies een optie): `));
     
     if (!answer) {
-        return field.default || null;
+        return field.default;
     }
     
     if (field.options.includes(answer)) {
@@ -94,7 +94,7 @@ async function askSelectField(field, colors) {
     }
     
     console.log(commentGray(`⚠️  "${answer}" is geen geldige optie, gebruik standaard.`));
-    return field.default || null;
+    return field.default;
 }
 
 /**
@@ -127,8 +127,8 @@ function setNestedValue(obj, path, value) {
     
     const lastKey = keys[keys.length - 1];
     
-    // Als de waarde null is en het is een optioneel veld, verwijder het
-    if (value === null && lastKey === 'network_mode') {
+    // Als de waarde null of undefined is, verwijder het veld uit het object
+    if (value === null || value === undefined) {
         delete current[lastKey];
     } else {
         current[lastKey] = value;
