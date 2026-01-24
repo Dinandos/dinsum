@@ -192,5 +192,4 @@ export async function runComposeWizard(envContent, colors) {
     return {
         yaml: newYaml,
         env: envContent
-    };
-}
+    }
