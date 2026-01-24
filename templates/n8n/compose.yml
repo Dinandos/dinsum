@@ -1,0 +1,13 @@
+services:
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: ${CONTAINER_NAME}
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - N8N_HOST=${HOST_N8N}
+      - WEBHOOK_URL=https://${HOST_N8N}/
+    ports:
+      - "${HOST_PORT_5678}:5678"
+    volumes:
+      - ${VOL_DATA}:/home/node/.n8n
