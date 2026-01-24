@@ -17,7 +17,7 @@ async function checkInternetConnection() {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 seconden timeout
         
-        const response = await fetch('https://www.google.com', {
+        const response = await fetch('1.1.1.1', {
             method: 'HEAD',
             signal: controller.signal,
             mode: 'no-cors'
