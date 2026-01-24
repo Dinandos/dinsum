@@ -71,7 +71,8 @@ async function askArrayField(field, colors) {
     }
     
     // Split op komma en trim elke waarde
-    return answer.split(',').map(item => item.trim()).filter(item => item.length > 0);
+    const result = answer.split(',').map(item => item.trim()).filter(item => item.length > 0);
+    return result.length > 0 ? result : undefined;
 }
 
 /**
@@ -126,7 +127,7 @@ async function askNetworksField(field, colors, isTopLevel = true) {
     
     // Als het niet de top-level configuratie is, retourneren we gewoon de lijst met namen
     if (!isTopLevel) {
-        return names;
+        return names.length > 0 ? names : undefined;
     }
 
     const networksConfig = {};
@@ -149,6 +150,11 @@ async function askNetworksField(field, colors, isTopLevel = true) {
         
         // Standaard (leeg object = default driver, geen expliciete 'bridge')
         networksConfig[name] = {};
+    }
+    
+    // Als config leeg is, return undefined zodat de key verwijderd wordt uit YAML
+    if (Object.keys(networksConfig).length === 0) {
+        return undefined;
     }
     
     return networksConfig;

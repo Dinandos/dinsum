@@ -1,40 +1,20 @@
 {
   "fields": [
     {
-      "key": "services.nginx.container_name",
-      "label": "Container naam",
-      "type": "text",
-      "default": "nginx-webserver",
-      "description": "De naam van de container"
-    },
-    {
-      "key": "services.nginx.ports",
-      "label": "Poorten (host:container)",
-      "type": "ports",
-      "default": [
-        "80:80",
-        "443:443"
-      ],
-      "description": "Poort mapping in formaat host:container (bijv. 8080:80)"
-    },
-    {
-      "key": "services.nginx.volumes",
-      "label": "Volumes",
-      "type": "volumes",
-      "default": [
-        "./html:/usr/share/nginx/html:ro",
-        "./nginx.conf:/etc/nginx/nginx.conf:ro"
-      ],
-      "description": "Volume mappings in formaat host:container:mode"
-    },
-    {
-      "key": "services.nginx.networks",
-      "label": "Networks",
       "type": "networks",
-      "default": [
-        "nginx-network"
-      ],
-      "description": "Networks waar de container aan verbonden moet worden"
+      "key": "services.nginx.networks",
+      "label": "Service Netwerken",
+      "description": "Welke netwerken moet de nginx container gebruiken?",
+      "default": ["proxy"]
+    },
+    {
+      "type": "networks",
+      "key": "networks",
+      "label": "Netwerk Definities",
+      "description": "Definieer de eigenschappen van de netwerken (extern/intern)",
+      "default": {
+        "proxy": { "external": true }
+      }
     }
   ]
 }
