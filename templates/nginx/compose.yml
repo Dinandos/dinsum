@@ -3,6 +3,7 @@ services:
     image: nginx:latest
     container_name: ${CONTAINER_NAME}
     restart: unless-stopped
+    env_file: .env
     ports:
       - "${HOST_PORT_80}:80"
       - "${HOST_PORT_443}:443"
