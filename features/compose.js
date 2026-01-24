@@ -71,21 +71,23 @@ export async function composeTool({ INSTALL_DIR, TEMPLATE_DIR, templateName, blu
         }
         
         // Start de wizard als er een .env template is
-        let finalEnvContent = null;
+        let wizardResult = null;
         if (envContent) {
-            finalEnvContent = await runComposeWizard(envContent, colors);
+            wizardResult = await runComposeWizard(envContent, composeContent, colors);
         }
         
         const targetDir = process.cwd();
         
         // Schrijf compose.yml
         const outputFile = path.join(targetDir, 'compose.yml');
-        await fs.writeFile(outputFile, composeContent, 'utf-8');
+        // Als de wizard heeft gedraaid, gebruik de nieuwe YAML, anders de originele
+        const finalComposeContent = wizardResult ? wizardResult.yaml : composeContent;
+        await fs.writeFile(outputFile, finalComposeContent, 'utf-8');
 
         // Schrijf .env
-        if (finalEnvContent) {
+        if (wizardResult && wizardResult.env) {
             const envFile = path.join(targetDir, '.env');
-            await fs.writeFile(envFile, finalEnvContent, 'utf-8');
+            await fs.writeFile(envFile, wizardResult.env, 'utf-8');
             console.log(successGreen(`\n✅ compose.yml en .env zijn aangemaakt!`));
         } else {
             console.log(successGreen(`\n✅ compose.yml is aangemaakt!`));
