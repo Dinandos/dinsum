@@ -205,23 +205,38 @@ async function askNetworksField(field, colors, isTopLevel = true) {
     console.log(commentGray(`\n${field.description}`));
     
     // Default weergave afhandelen (array voor services, object voor top-level)
-    let defaultDisplay = '';
+    let defaultNames = [];
     if (field.default) {
         if (Array.isArray(field.default)) {
-            defaultDisplay = field.default.join(', ');
+            defaultNames = field.default;
         } else if (typeof field.default === 'object') {
-            defaultDisplay = Object.keys(field.default).join(', ');
+            defaultNames = Object.keys(field.default);
         }
     }
+    const defaultDisplay = defaultNames.join(', ');
     console.log(textWhite(`Huidige netwerken: ${defaultDisplay || 'geen'}`));
     
-    const answer = await askQuestion(accentOrange(`${field.label} (druk Enter voor standaard, of geef namen gescheiden door komma's): `));
+    // 1. Vraag of de gebruiker netwerken wil gebruiken
+    const wantNetworksAnswer = await askQuestion(accentOrange(`Wil je netwerken toevoegen/gebruiken? (Y/n): `));
+    const wantNetworks = wantNetworksAnswer.trim().toLowerCase() !== 'n';
     
-    if (!answer) {
-        return field.default;
+    if (!wantNetworks) {
+        return undefined;
     }
     
-    const names = answer.split(',').map(item => item.trim()).filter(item => item.length > 0);
+    // 2. Vraag om namen
+    const answer = await askQuestion(accentOrange(`${field.label} (druk Enter voor '${defaultDisplay}', of geef namen gescheiden door komma's): `));
+    
+    let names = [];
+    if (!answer) {
+        names = defaultNames;
+    } else {
+        names = answer.split(',').map(item => item.trim()).filter(item => item.length > 0);
+    }
+    
+    if (names.length === 0) {
+        return undefined;
+    }
     
     // Als het niet de top-level configuratie is, retourneren we gewoon de lijst met namen
     if (!isTopLevel) {
