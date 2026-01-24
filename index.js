@@ -18,7 +18,6 @@ const INSTALL_DIR = __dirname;
 const TEMPLATE_DIR = path.join(INSTALL_DIR, 'templates');
 const command = process.argv[2];
 const templateName = process.argv[3]; // Voor compose command
-const targetDir = process.cwd();
 
 // Kleuren instellen volgens COLOR_SCHEME.md
 // Groen = Succes, Rood = Fail, Grijs = Comment, Blauw = Status, Oranje = AccentColor
@@ -62,21 +61,23 @@ async function run() {
     }
 
     if (!command) {
-        console.log(white("Gebruik: ") + blue("dinsum <template>") + gray(" | ") + orange("update") + gray(" | ") + orange("uninstall") + gray(" | ") + orange("compose <template>"));
+        console.log(white("Gebruik: ") + orange("dinsum") + gray(" <command>"));
+        console.log(gray("\nBeschikbare commands:"));
+        console.log(gray("  - ") + orange("compose <template>") + gray(" - Genereer een compose.yml van een template"));
+        console.log(gray("  - ") + orange("update") + gray(" - Update dinsum naar de laatste versie"));
+        console.log(gray("  - ") + orange("uninstall") + gray(" - Verwijder dinsum"));
         if (fs.existsSync(TEMPLATE_DIR)) {
+            console.log(gray("\nBeschikbare templates:"));
             const folders = fs.readdirSync(TEMPLATE_DIR);
-            folders.forEach(f => console.log(gray(" - ") + white(f)));
+            folders.forEach(f => console.log(gray("  - ") + white(f)));
         }
         return;
     }
 
-    const source = path.join(TEMPLATE_DIR, command);
-    if (fs.existsSync(source)) {
-        await fs.copy(source, targetDir);
-        console.log(boldGreen("✅ Template ") + blue(command) + boldGreen(" staat klaar!"));
-    } else {
-        console.log(boldRed(`❌ Fout: Template "${command}" niet gevonden.`));
-    }
+    // Onbekend commando
+    console.log(boldRed(`❌ Fout: Onbekend commando "${command}".`));
+    console.log(white("Gebruik: ") + orange("dinsum") + gray(" <command>"));
+    console.log(gray("Voer ") + orange("dinsum") + gray(" zonder argumenten in voor help."));
 }
 
 run();
