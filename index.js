@@ -10,7 +10,7 @@ const targetDir = process.cwd();
 
 async function run() {
     if (!serviceName) {
-        console.log("❌ Gebruik: boilerplate <naam>");
+        console.log("❌ Gebruik: dinsum <naam>");
         const folders = fs.readdirSync(TEMPLATE_DIR);
         console.log("Beschikbare templates:", folders.join(", "));
         return;

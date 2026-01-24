@@ -3,7 +3,7 @@
 # Update en installeer Node.js als het ontbreekt
 if ! command -v node &> /dev/null; then
     echo "📦 Node.js installeren..."
-    sudo apt update && sudo apt install -y nodejs npm
+    sudo apt-get install nodejs npm -y
 fi
 
 # Map bepalen voor installatie

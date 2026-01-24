@@ -1,5 +1,5 @@
 services:
-  ubuntu:
+  ubuntu-testing:
     image: ubuntu:latest
     container_name: ubuntu
     volumes:
