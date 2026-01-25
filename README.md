@@ -1,6 +1,3 @@
-Hier is een korte, professionele `README.md` voor je repository. Deze legt precies uit wat de tool doet en hoe je die verschillende versies kunt installeren.
-
----
 
 # 🥟 Dinsum CLI
 
