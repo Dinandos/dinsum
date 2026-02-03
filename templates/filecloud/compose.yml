@@ -1,0 +1,14 @@
+services:
+    <current_image_name:
+        privileged: true
+        ports:
+            - 443:443
+            - 80:80
+        volumes:
+            - fcdata:/opt/fileclouddata
+            - dbdata:/var/lib/mongodb
+            - solrdata:/opt/solrfcdata/var/solr
+            - htmldata:/var/www/html
+        container_name: <yourcontainername>
+        image: <current_image_name:tag>
+        command: /lib/systemd/systemd
